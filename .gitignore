@@ -1,0 +1,25 @@
+# === Secrets — NEVER commit ===
+config.yaml
+config.*.yaml
+!config.example.yaml
+telegram.config.json
+*.local
+.env
+.env.*
+
+# === Build output ===
+dist/
+
+# === Dependencies ===
+node_modules/
+
+# === Backups created by install.sh / uninstall.sh ===
+*.bak
+*.bak-*
+
+# === OS / editor ===
+.DS_Store
+.idea/
+.vscode/
+*.log
+npm-debug.log*

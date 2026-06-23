@@ -1,0 +1,36 @@
+# watush-mcp configuration.
+#
+# Copy this file to config.yaml, then fill in real values:
+#     cp config.example.yaml config.yaml && chmod 600 config.yaml
+#
+# config.yaml is git-ignored, so your real token and chat IDs are NEVER
+# committed. This example file is safe to commit — it has placeholders only.
+
+# Your Telegram bot token from @BotFather. Looks like "123456789:ABCdef...".
+# Can also be supplied via the TELEGRAM_BOT_TOKEN env var (env wins).
+botToken: "PASTE_BOT_TOKEN_HERE"
+
+# The master user — that's you. Receives an audit copy of every message
+# routed to anyone else. chatId is your numeric Telegram user ID.
+# Can also be supplied via the TELEGRAM_CHAT_ID env var (env wins).
+owner:
+  name: "Your Name"
+  chatId: "PASTE_YOUR_CHAT_ID_HERE"
+
+# People you can address by name or tag, e.g. "message my partner".
+# Each person must DM the bot once first so it can learn their chat ID.
+# To capture chat IDs, run the on-demand listener and have them send /chatinfo:
+#     npm run chatinfo
+# ...or print everyone who recently messaged the bot:
+#     npm run chats
+recipients:
+  - name: "Alice"
+    chatId: "PASTE_ALICE_CHAT_ID"
+    tags: ["partner", "household"]
+  - name: "Bob"
+    chatId: "PASTE_BOB_CHAT_ID"
+    tags: ["friend", "team"]
+
+# Send the owner (you) a copy of every message routed to someone else.
+# Set to false to disable audit copies.
+auditToOwner: true

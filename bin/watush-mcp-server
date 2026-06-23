@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+#
+# watush-mcp launcher.
+#
+# Agents (Claude Code, Claude Desktop, Codex) are pointed at this script instead
+# of a hard-coded `node` path. GUI apps don't inherit your shell PATH, and nvm
+# paths change on every node upgrade — so we resolve a node binary at runtime:
+# PATH first, then sourced nvm, then common locations, then the newest
+# nvm-installed version.
+
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ENTRY="$DIR/dist/src/mcp-server.js"
+
+# If node isn't already on PATH (typical for GUI-launched apps), try nvm.
+if ! command -v node >/dev/null 2>&1; then
+  export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
+  # shellcheck disable=SC1091
+  [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" >/dev/null 2>&1
+fi
+
+# 1) node on PATH (includes the nvm default we may have just sourced).
+if command -v node >/dev/null 2>&1; then
+  exec node "$ENTRY" "$@"
+fi
+
+# 2) common absolute locations.
+for candidate in /opt/homebrew/bin/node /usr/local/bin/node; do
+  [ -x "$candidate" ] && exec "$candidate" "$ENTRY" "$@"
+done
+
+# 3) newest nvm-installed node (sort -V so v20 beats v18, etc.).
+nvm_node="$(ls -1 "$HOME/.nvm/versions/node"/*/bin/node 2>/dev/null | sort -V | tail -1)"
+if [ -n "$nvm_node" ] && [ -x "$nvm_node" ]; then
+  exec "$nvm_node" "$ENTRY" "$@"
+fi
+
+echo "watush-mcp: could not find a node binary on this system." >&2
+echo "Install Node.js (>=18) or add it to PATH, then re-run." >&2
+exit 127
