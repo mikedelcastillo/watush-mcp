@@ -1,7 +1,11 @@
 #!/usr/bin/env node
 /**
  * Add or remove the [mcp_servers.<name>] block in Codex's config.toml.
- * Usage: edit-codex.mjs <add|remove> <launcherPath> [name]
+ * Usage:
+ *   edit-codex.mjs add <command> [name] [arg ...]   # arg... become the args array
+ *   edit-codex.mjs remove "" [name]
+ * On macOS/Linux <command> is the launcher (no extra args). On Windows pass
+ *   add node <name> C:/path/to/dist/src/mcp-server.js
  * Backs up the file before writing. Idempotent: an existing block (and any of
  * its sub-tables) is removed/replaced cleanly.
  */
@@ -9,7 +13,7 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync, copyFileSync } from
 import { homedir } from "node:os";
 import { join, dirname } from "node:path";
 
-const [action, launcher, name = "watush"] = process.argv.slice(2);
+const [action, command, name = "watush", ...extraArgs] = process.argv.slice(2);
 const file = join(homedir(), ".codex", "config.toml");
 const header = `[mcp_servers.${name}]`;
 const fullKey = `mcp_servers.${name}`;
@@ -57,13 +61,14 @@ const tidy = (s) => s.replace(/\n{3,}/g, "\n\n").replace(/\s*$/, "");
 let text = existsSync(file) ? readFileSync(file, "utf8") : "";
 
 if (action === "add") {
-  if (!launcher) {
-    console.error("missing launcher path");
+  if (!command) {
+    console.error("missing command");
     process.exit(2);
   }
   mkdirSync(dirname(file), { recursive: true });
   if (existsSync(file)) backup();
-  const block = `${header}\ncommand = ${tomlStr(launcher)}\nargs = []\n`;
+  const argsToml = extraArgs.map(tomlStr).join(", ");
+  const block = `${header}\ncommand = ${tomlStr(command)}\nargs = [${argsToml}]\n`;
   const base = tidy(stripBlock(text));
   writeFileSync(file, base ? `${base}\n\n${block}` : block);
 } else if (action === "remove") {
@@ -71,6 +76,6 @@ if (action === "add") {
   backup();
   writeFileSync(file, tidy(stripBlock(text)) + "\n");
 } else {
-  console.error("usage: edit-codex.mjs <add|remove> <launcher> [name]");
+  console.error("usage: edit-codex.mjs add <command> [name] [arg ...]  |  edit-codex.mjs remove \"\" [name]");
   process.exit(2);
 }
